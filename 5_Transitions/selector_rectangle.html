@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>    
+
+
+</style>
+</head>
+<body>
+<form>
+  <input type="radio" name="speed" value="0"  id = "none");" checked> None<br>
+  <input type="radio" name="speed" value="250" id = "fast" > Fast<br>
+  <input type="radio" name="speed" value="500" id = "medium" > Medium <br>
+  <input type="radio" name="speed" value="750" id = "slow" > Slow
+</form>
+
+
+<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
+<script>
+// selector rectangle
+
+var svgHeight = 500
+var svgWidth = 960
+
+var svg  = d3.select("body").append("svg")
+			.attr("height", svgHeight)
+			.attr("width", svgWidth);
+
+//How big is our rectangle? Where is it located?
+var recX = 50
+var recY = 50
+var recWidth = 400
+var recHeight = 300			
+
+//block size
+//1,2,	5, 10, 25, 50, 
+var block = 10
+
+
+
+
+//starting postions of the lines
+	
+// Sequence generation with jscript: http://ariya.ofilabs.com/2013/07/sequences-using-javascript-array.html
+//the number in brackets is how big the array is 
+//y is the index	
+
+// we're going to draw lines that go from length block, with gap block 
+// eg block = 10 then lines go from 20 to 30, gap from 30 to 40 etc 
+
+var nHoriLines = (recWidth / (2 *block)) - 1 //number of horizontal lines
+var nVertLines = (recHeight / (2 *block)) - 1 
+	
+var toplines = Array.apply(0, Array(nHoriLines)).map(function (x, y) { return recX + (2*block)*y + block; });
+//add 10 to each element
+var botlines = addMe(toplines, 10)
+	
+var rightlines = Array.apply(0, Array(nVertLines)).map(function (x, y) { return recY+ (2*block)*y + block; });
+//add 10 to each element
+var leftlines = addMe(rightlines,10) 
+
+
+
+function addMe(arr, num) {
+//function to add a number over a particular array
+	arr = arr.map(function(d) {
+	return (d + num)
+	});
+	return(arr)
+};
+
+
+
+	
+//add containers
+svg.append("g")
+	.attr("class", "top");
+	
+svg.append("g")
+	.attr("class", "bot");
+	
+svg.append("g")
+	.attr("class", "left");
+	
+svg.append("g")
+	.attr("class", "right");
+	
+	
+		
+	
+//top and bottom lines	
+for(var i =0; i < toplines.length; i++) {
+  svg.select(".top").append("svg:line")
+  	.attr("x1", toplines[i])
+  	.attr("x2", (toplines[i] + block))
+  	.attr("y1", recY)
+  	.attr("y2", recY)
+  	.style("stroke", "black");
+
+  svg.select(".bot").append("svg:line")
+  	.attr("x1", botlines[i])
+  	.attr("x2", (botlines[i] + block))
+  	.attr("y1", recY + recHeight)
+  	.attr("y2", recY + recHeight)
+  	.style("stroke", "black");
+}
+
+//left and right lines
+for(var i =0; i < rightlines.length; i++) {
+  svg.select(".right").append("svg:line")
+  	.attr("x1", recX + recWidth)
+  	.attr("x2", recX + recWidth)
+  	.attr("y1", rightlines[i])
+  	.attr("y2", rightlines[i] + block)
+  	.style("stroke", "black");
+
+  svg.select(".left").append("svg:line")
+  	.attr("x1", recX)
+  	.attr("x2", recX)
+  	.attr("y1", leftlines[i])
+  	.attr("y2", leftlines[i] + block)
+  	.style("stroke", "black");
+}
+
+//Corners
+//these start off either entirely horizontal or vertical-align
+
+//horizontal
+svg.append("path")
+	.attr("id", "topright")
+	.attr("d", "M" + (recX +recWidth - (block)) + " " + recY + " l " + block +" 0")
+	.attr("stroke", "black")
+	.attr("fill", "none")
+	
+//vertical
+svg.append("path")
+	.attr("id","botright")
+	.attr("d", "M" + (recX +recWidth) + " " + (recY + recHeight - block) + " l 0 " + (block))
+	.attr("stroke", "black")
+	.attr("fill", "none")
+	
+//horizontal
+svg.append("path")
+	.attr("id","botleft")
+	.attr("d", "M" + recX + " " + (recY + recHeight) + " l " + (block) + " 0")
+	.attr("stroke", "black")
+	.attr("fill", "none")
+
+//vertical
+svg.append("path")
+	.attr("id","topleft")
+	.attr("d", "M" + recX + " " + (recY +  block) + " l 0 " + (-block))
+	.attr("stroke", "black")
+	.attr("fill", "none")
+	
+	
+//animate()
+	
+/*
+//When the radio button is pushed, change the speed	
+d3.select("#none").on("input", function() {
+  update(+this.value, "y");
+});
+*/
+d3.selectAll("input").on("change", function() {
+debugger; 
+animate();
+} )
+	
+function animate()
+{
+//make it move
+//we have 4 transitions before return to starting position
+//
+//how much we delay by at the start
+var del = 200
+//how much time there is between movements
+var gap = 40
+
+
+//inter measures how much time the transition takes
+var inter
+//value of this depends on which radio box is selected
+if (document.getElementById("none").checked) {
+	inter = 0
+} else if (document.getElementById("fast").checked) {
+	inter = 250
+} else if (document.getElementById("medium").checked) {
+	inter = 500
+} else {
+	inter = 750
+} 
+
+
+//animation
+var count = 0 
+for(i =0; i < 10; i++) {
+svg.select(".top")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(" + (block)/2 + ",0)" )
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("transform", "translate(" + (2*block)/2 + ",0)")
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("transform", "translate(" + (3*block)/2 + ",0)")	
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("transform","translate(" + 0 + ",0)")
+	
+	
+svg.select(".bot")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(" + (-block)/2 + ",0)" )
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("transform", "translate(" + (-2*block)/2 + ",0)")
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("transform", "translate(" + (-3*block)/2 + ",0)")	
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("transform","translate(" + 0 + ",0)")
+	
+svg.select(".left")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (-block)/2 + ")" )
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (-2*block)/2 + ")" )
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (-3*block)/2 + ")" )
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("transform","translate(" + 0 + ",0)")
+	
+svg.select(".right")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (block)/2 + ")" )
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (2*block)/2 + ")" )
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("transform" , "translate(0," + (3*block)/2 + ")" )
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("transform","translate(" + 0 + ",0)")
+	
+svg.select("#topright")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth - ((block)/2)) + " " + recY + " l " + (block/2) +" 0 l 0 " + (block/2))
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth) + " " + recY  +" l 0 " + (block))
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth) + " " + (recY + block/2) + "l 0 " + block)
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth - (block)) + " " + recY + " l " + block +" 0")
+	
+svg.select("#botright")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth) + " " + (recY + recHeight - (block/2)) + " l 0 " + (block/2) +" l " + (-block/2) + " 0")
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth) + " " + (recY + recHeight) + " l  " + (-block) + " 0")
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth - (block/2)) + " " + (recY + recHeight) + " l " + (-block) + " 0")
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +recWidth) + " " + (recY + recHeight - block) + " l 0 " + (block))
+	
+svg.select("#botleft")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX +((block)/2)) + " " + (recY + recHeight) + " l " + (-block/2) +" 0 l 0 " + (-block/2))
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX) + " " + (recY + recHeight) +" l 0 " + (-block))
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX) + " " + (recY + recHeight - block/2) + "l 0 " + (-block))
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("d", "M" + recX + " " + (recY + recHeight) + " l " + (block) + " 0")
+	
+svg.select("#topleft")
+	.transition()
+	.delay(del + count * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX) + " " + (recY + (block/2)) + " l 0 " + (-block/2) +" l " + (+block/2) + " 0")
+	.transition()
+	.delay(del + (count + 1) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX) + " " + (recY) + " l  " + (block) + " 0")
+	.transition()
+	.delay(del +(count + 2) * (inter + gap))
+	.duration(inter)
+	.attr("d", "M" + (recX + (block/2)) + " " + (recY) + " l " + (block) + " 0")
+	.transition()
+	.delay(del + (count + 3)*(inter + gap))
+	.duration(inter)
+	.attr("d", "M" + recX + " " + (recY +  block) + " l 0 " + (-block))
+	
+	count = count + 4;
+}
+}	
+
+
+</script>
+</body>
+</html>

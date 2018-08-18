@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<style>
+
+</style>
+</head>
+<body>
+<script>
+//http://bl.ocks.org/dbuezas/9306799
+var width = 960
+var height = 500
+var radius = Math.min(width/2,height/2)
+
+//We can specify our colour scale in a few different ways. 
+//One way is to use default d3 categorical colours
+var colour = d3.scale.category10() //constructs ordinal scale with 10 colours
+//Another way is to manually specify the colours:
+//var colour = d3.scale.ordinal()
+//				.range(['#A60F2B', '#648C85', '#B3F2C9', '#528C18', '#C3F25C'])
+
+
+
+var svg = d3.select("body").append("svg")
+			.attr("height", height)
+			.attr("width", width)
+			.append("g")
+			//this centres the pie chart in the middle of the svg element
+			.attr("transform", "translate(" + width/2 + "," + height/2 + ")");
+
+//construct an arc
+var arc = d3.svg.arc()
+			.outerRadius(radius * 0.8)
+			.innerRadius(radius * 0.4);
+			
+//d3.layout.pie makes things easier
+
+var pie = d3.layout.pie()
+			.sort(null)
+			.value(function(d) {return d.Wkts});
+
+
+var labelArc = d3.svg.arc()
+				.outerRadius(radius * 0.9)
+				.innerRadius(radius * 0.9);
+			
+			
+svg.append("g")
+	.attr("class", "slices");
+svg.append("g")
+	.attr("class", "labels");
+svg.append("g")
+	.attr("class", "lines");
+	
+
+
+d3.csv("wickets.csv", type, function(error,data) {
+	if (error) throw error
+	
+	var g = svg.selectAll(".arc")
+			.data(pie(data))
+			.enter()
+			.append("g")
+			.attr("class", "arc");
+			
+	g.append("path")
+		.attr("d",arc)
+		.style("fill", function(d) {return colour(d.data.Wkts); });
+	
+	g.append("text")
+		//centroid gives midddle of inner arc and outer arc
+		.attr("transform", function(d) {return "translate(" + labelArc.centroid(d) + ")"; })
+		.attr("dy", ".35em")
+		.text(function(d) {return d.data.Player; });
+		
+	
+	var text = svg.select(".labels").selectAll("text")
+	 				.data(pie(data), function(d) { return colour(d.data.Wkts); } );
+					
+					
+		text.enter()
+		.append("text")
+		.attr("dy", ".35em")
+		.text(function(d) {
+			return d.data.Player;
+		});
+	
+	
+	
+	//Generating nice labels
+	/*
+		1. For each label, compute the start and end of the line underneath it 
+				Done by drawing it's label and getting the bounding box
+		2. 
+	*/
+		
+	
+});
+		
+	function type(d) {
+	d.Wkts = +d.Wkts
+	d.Overs = +d.Overs
+	d.Player = d.Player
+	return d
+}		
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

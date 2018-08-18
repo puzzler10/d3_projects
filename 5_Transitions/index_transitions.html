@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <title>Bar Transition Example</title>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
+    <script type="text/javascript" src="data.json"></script>
+    <script type="text/javascript" src="bar.js"></script>
+
+	<!-- The style type identifies the content between the style tags 
+		 The value "text/css" indicates that this is css text -->
+    <style type="text/css">
+    /* Differences between "#" and "."
+    	# is an id selector - used to target a single specific element, with a unique id (id attribute must be unique)
+    	. is a class selector - used to target multiple elements, with a class
+    	eg #foo {} will style the single element declared with an attribute id="foo"
+    	.foo {} will style all elements with an attribute class="foo"
+    	
+    	The # selector dominates over the . selector
+    	eg if we are given <div id="sidebar" class="box">, rules for #sidebar override rules for .box
+    	
+      */ 
+        #demo { 
+            float: left;  /* this means that things in this div will go on the left of the page */       
+        }
+        #vimeo {
+            padding: 30px;
+            float: left;
+        }
+    </style>
+ </head>
+ <body>
+    <div id="demo">
+        <div id="buttons">
+        <button id="data1">Set Data to data 1</button>
+        <button id="data2">Set Data to data 2</button>
+        <br> <!-- Line break -->
+        <button id="random">Make Random Data</button>
+        <input id="num" value=10></input>
+        </div>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg"></svg>
+    </div>
+
+    <script type="text/javascript">
+        init();
+    </script>
+
+    <div id="vimeo">
+    
+    <!-- iframe = inline frame
+    Inline frame: a HTML document embedded inside another HTML document 
+    Here it's used to embed a video next to the bar chart 
+        -->
+    
+    <iframe src="http://player.vimeo.com/video/29080884?title=0&amp;byline=0&amp;portrait=0" width="500" height="313" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><p><a href="http://vimeo.com/29080884">[d3cast] Simple Bar Chart Walkthrough</a> from <a href="http://vimeo.com/user4640702">Ian Johnson</a> on <a href="http://vimeo.com">Vimeo</a>.</p>
+    </div>
+
+ </body>
+</html>

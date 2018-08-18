@@ -1,0 +1,158 @@
+
+//let's do it 
+var margin = { 
+	top: 30,
+	left: 65,
+	right: 20,
+	bottom: 50
+}
+
+
+height = 400 - margin.top - margin.bottom
+width = 600 - margin.left - margin.right 
+
+//step 1- make SVG element
+var svg = d3.select("body").append("svg")
+			.attr("height", height + margin.top + margin.bottom)
+			.attr("width", width + margin.left + margin.right)
+			.append("g") //investigate the effects of removing this
+   			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	
+
+//step 2 - let's draw some axes
+
+//xAxis is year	
+//we'll use an ordinal scale - or a scale that has a discrete domain, like a set of names, categories, years etc
+var xScale = d3.scale.ordinal()
+				//we'll specify the domain once we read in our data
+				.rangeRoundBands([width,0], .1);
+				
+var xAxis = d3.svg.axis()
+			.scale(xScale)
+			.orient("bottom");
+			
+var yScale = d3.scale.linear()
+				.range([height,0])
+				
+var yAxis = d3.svg.axis()
+			.scale(yScale)
+			.orient("left")
+			//we use Tickformat to round our high numbers accordingly
+			.tickFormat(function(d) {
+				if ( (d/100000000) >= 1 ) {
+					d = d/1000000000
+				}
+				return d;
+			});
+var tip = d3.tip()
+			.attr("class","d3-tip")
+			.html(function (d) {
+			 
+				return "<strong>% of World Pop:</strong> <span style='color:red'>" + d.Penetration + "</span>";
+			});
+
+svg.call(tip);			
+
+//svg.append("g")
+  //    .attr("class", "x axis")
+    //  .attr("transform", "translate(0," + height + ")")
+      //.call(xAxis);
+				
+			
+				
+				
+
+//Let's read in our data
+
+d3.csv("internet_users.csv",type,  function(data) { //type is an accessor function so we can access data for tooltip
+	
+	
+	/*
+	//map is seen a lot. what does it do?
+	// in general in javascript, map looks like 
+	//arr.map(callback[, thisArg])
+	map calls a function once for each element in an array, in order
+	A new array is constructed from the results.
+	
+	*/
+	xScale.domain(data.map(function(d) {return d.Year;})); //we want to return an array - one for each discrete element
+	
+	//we don't need to use map function here, because we only want the maximum value
+	yScale.domain([0, d3.max(data, function(d) { return +d["Internet Users"]; } )]);
+	
+	
+	
+	//xAxis
+	svg.append("g")
+		.attr("class","x axis")
+		.attr("transform", "translate(0," + height + ")") //moves the x-axis to the bottom of the screen
+		.call(xAxis)			
+		// we need to rotate our labels on the x-axis to make them more readable
+		.selectAll("text")
+			.style("text-anchor", "end") //end of the label is attached to axis tick
+			.attr("dx", "-.8em")
+			.attr("dy", ".15em")
+			.attr("transform", "rotate(-35)");
+	
+	//yAxis
+	svg.append("g")
+		.attr("class","y axis")
+		.call(yAxis);
+	
+	//x axis label
+	svg.append("text")
+		.attr("x", width/2)
+		.attr("y", height + margin.bottom)
+		.text("Year");
+	
+	//y axis label
+	svg.append("text")
+        .attr("transform", "rotate(-90)")
+		//NOTE - we actually rotate our reference point by 90 degrees
+		//http://www.d3noob.org/2012/12/adding-axis-labels-to-d3js-graph.html gives more detail
+		.attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Number of Users (billions)");
+	
+	
+
+
+	//title
+	svg.append("g")
+		.attr("class","title")
+		.append("text")
+		.attr("x", width/2)
+		.attr("y", (margin.top / 2))
+		.attr("text-anchor", "middle")
+		.text("Internet users over time")
+		
+	//Using d3-tip to create a tooltip
+	//Create a variable to store d3-tip element
+	//Here we also describe what part of the data to display in the tooltip
+	
+		
+		
+		svg.selectAll(".bar")
+		.data(data)
+		.enter()
+		.append("rect")
+		.attr("class", "bar")
+		.attr("x", function(d) {return xScale(d.Year);})
+		.attr("y", function(d) {return yScale(d["Internet Users"]); })
+		.attr("width",xScale.rangeBand())
+		.attr("height", function (d) {return height - yScale(d["Internet Users"]);  })
+		//show and hide tooltip
+		.on("mouseover", tip.show)
+		.on("mouseout", tip.hide) ;
+	
+	
+	
+	
+});
+
+function type(d) {
+		d.Penetration = d.Penetration;
+		return d;
+	}

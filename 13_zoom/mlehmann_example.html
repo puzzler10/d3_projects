@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+svg {
+  overflow: hidden;
+}
+
+.axis line {
+  stroke: lightgrey;
+  stroke-opacity: 0.4;
+}
+
+circle {
+  fill: steelblue;
+  stroke: black;
+  stroke-width: 1px;
+}
+
+</style>
+<svg width="1020" height="540"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+var width = 960, height = 500;
+
+var data = d3.range(500).map(function() {
+    return {
+        x: ~~Math.pow(10, d3.randomNormal(5, 10 * 0.15)()),
+        y: Math.abs(d3.randomNormal(10, 20 * 0.15)())
+    };
+});
+
+var xScale = d3.scaleLog()
+    .domain([1.00, 1.00e10])
+    .rangeRound([0, width]);
+
+var yScale = d3.scaleLinear()
+    .domain([0.00, 20.00])
+    .rangeRound([height, 0]);
+
+var xAxis = d3.axisBottom(xScale)
+    .ticks(10, ".1s")
+    .tickSizeInner(-height)
+    .tickSizeOuter(3)
+    .tickPadding(5);
+
+var yAxis = d3.axisLeft(yScale)
+    .ticks(10, ".2f")
+    .tickSizeInner(-width)
+    .tickSizeOuter(3)
+    .tickPadding(5);
+
+var zoom = d3.zoom()
+    .scaleExtent([1, 50])
+    .translateExtent([[0, 0], [1020, 540]])
+    .on("zoom", update);
+
+var chart = d3.select("svg")
+    .append("g")
+    .attr("transform", "translate(40, 20)");
+
+var gX = chart.append("g")
+    .attr("class", "axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+var gY = chart.append("g")
+    .attr("class", "axis")
+    .call(yAxis);
+
+var canvas = chart.append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .call(zoom);
+    
+    
+    
+
+var circle = canvas.selectAll("circle")
+      .data(data)
+    .enter().append("circle")
+      .attr("transform", function(d) {
+           var dx = xScale(d.x);
+           var dy = yScale(d.y);
+           return "translate(" + dx + "," + dy + ")";
+      })
+      .attr("r", 3.0)
+      .on("click", show);
+      
+    /*  .on("drag", function(d) {
+          d3.select(this)
+            .attr("cx", d.x = d3.event.x  )
+            .attr("cy", d.y = d3.event.y  );
+            }); */
+      
+
+function update() {
+    var transform = d3.event.transform;
+    gX.call(xAxis.scale(transform.rescaleX(xScale)));
+    gY.call(yAxis.scale(transform.rescaleY(yScale)));
+    circle.attr("transform", function(d) {
+        var dx = transform.applyX(xScale(d.x));
+        var dy = transform.applyY(yScale(d.y));
+        return "translate(" + dx + "," + dy + ")";
+    });
+}
+
+function show(d) {
+    alert(d.x + " | " + d.y);
+}
+
+</script>

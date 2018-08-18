@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+path {
+  fill: black;
+  stroke: red;
+  stroke-linejoin: round;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var twizzleLock = {},
+    plonkLock = {};
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+svg.append("g")
+    .attr("transform", "translate(" + (width / 2) + "," + (height / 2) + ")")
+  .append("path")
+    .attr("d", d3.svg.symbol().type("cross").size(50000))
+    .call(twizzle, 20000) //run function "twizzle" on the selection, with parameter 20000
+    .call(plonk, 2000);
+
+function twizzle(path, duration) {
+  d3.select(twizzleLock).transition()
+      .duration(duration)
+      .tween("attr:transform", function() {
+        var i = d3.interpolateString("rotate(0)", "rotate(720)");
+        return function(t) { path.attr("transform", i(t)); }; //t is a tween factor typically between 0 and 1 
+      });
+
+  setTimeout(function() { twizzle(path, duration); }, (Math.random() + 1) * duration);
+}
+
+function plonk(path, duration) {
+  d3.select(plonkLock).transition()
+      .duration(duration)
+      .tween("style:stroke-width", function() {
+        var i = d3.interpolateString("0px", "30px");
+        return function(t) { path.style("stroke-width", i(t)); };
+      })
+    .transition()
+      .tween("style:stroke-width", function() {
+        var i = d3.interpolateString("30px", "0px");
+        return function(t) { path.style("stroke-width", i(t)); };
+      });
+
+  setTimeout(function() { plonk(path, duration); }, (Math.random() + 2) * duration);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+toplines = addMe(toplines,block)
+d3.select(".top").selectAll("line")
+	.data(toplines)
+	.transition()
+	.delay(250)
+	.duration(250)
+	.attr("x1", function(d) {return d})
+	.attr("x2", function(d) {return d + block})
+	.transition()
+	.delay(250)
+	.duration(250)
+	.each("start", function(d,i) { d3.select(this).attr("x1", toplines[i]) })
+	.attr("x1", function(d) {return d+ block})
+	.attr("x2", function(d) {return d + 2*block})
+	.transition()
+	.delay(250)
+	.duration(250)
+	.each("start", function(d,i) { d3.select(this).attr("x1", toplines[i]) })
+	.attr("x1", function(d) {return d+ 2*block})
+	.attr("x2", function(d) {return d + 3*block})
+	.transition();
+
+
+
+
+
+</script>

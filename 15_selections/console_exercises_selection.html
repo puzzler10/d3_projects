@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<svg class="svg_box" width="1000" height="700"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+// Open up a console and do the following 
+    // create circles mapping the centeres of old_centers 
+    // make new data 
+    // make the circles reflect the new data using selection enter, update,exit.
+
+var svg = d3.select('svg');
+var width = +svg.attr("width");
+var height = +svg.attr("height");
+
+var radius = 20;
+var circles; 
+
+var old_centers; 
+
+old_centers = [100,200,300,400,500,600,700,800,900];
+
+
+/* Solution 
+var circles = svg.selectAll("circle")
+    .data(old_centers)
+    .enter()
+    .append("circle")
+        .attr("cx", (d) => d )
+        .attr("cy", height/2)
+        .attr("r", radius);
+        
+        
+var new_centers = [150,250,400,500,750,900];
+
+circles = svg.selectAll("circle")
+    .data(new_centers, (d) => d)
+    .attr("class", "updated");
+    
+circles.exit().remove();    
+
+circles.enter()
+    .append("circle")
+        .attr("cx", (d) => d )
+        .attr("cy", height/2)
+        .attr("r", radius)
+        .style("fill", "green");
+        
+var new_centers2 = [70,330,400,750,800,900];
+
+
+circles = svg.selectAll("circle")
+    .data(new_centers2, (d) => d)
+    .attr("class", "update2");
+    
+circles.exit().remove(); 
+    
+circles.enter()
+    .append("circle")
+        .attr("cx", (d) => d )
+        .attr("cy", height/2)
+        .attr("r", radius)
+        .style("fill", "purple");
+*/
+
+
+
+
+</script> 

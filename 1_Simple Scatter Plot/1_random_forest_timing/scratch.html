@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+	<style>
+		.axis path,
+		.axis line 
+		{
+			fill: none;
+			stroke: black;
+			shape-rendering: crispEdges;
+		}
+			
+		.axis text 
+		{
+			font-family: sans-serif;
+			font-size: 11px;
+		}
+		
+		div.tooltip 
+		{   
+			position: absolute;           
+			text-align: center;           
+			width: 70px;                  
+			height: 14px;                 
+			padding: 2px;             
+			font: 12px sans-serif;        
+			background: lightsteelblue;   
+			border: 0px;      
+			border-radius: 8px;           
+			pointer-events: none;         
+		}
+	</style>
+</head>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"> </script> 
+<script>
+	var max_time = 22
+	var margin = {top: 20, right: 20, bottom: 30, left: 40},
+	width = 960 - margin.left - margin.right,
+	height = 500 - margin.top - margin.bottom;
+	
+	//Create a svg element to store the graph in 
+	var svg = d3.select("body").append("svg")
+		.attr("width" , width + margin.left + margin.right)
+		.attr("height" , height + margin.top + margin.bottom)
+		.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	
+	//Set up scales that we can use to draw the axes
+	var x = d3.scale.linear()
+				.domain([0,5000])
+				.range([0,width]);
+	var y = d3.scale.linear()
+				.domain([0,max_time + 1])
+				.range([height,0]);
+				
+	//Setting up the axes
+	var xAxis = d3.svg.axis()
+					.scale(x)
+					.orient("bottom")
+					.ticks(5);
+					
+	var yAxis = d3.svg.axis()
+					.scale(y)
+					.ticks(5)
+					.orient("left");
+					
+		
+	//Add the axis to our svg element
+	// x-axis
+	svg.append("g")
+		.attr("class", "x axis label")
+		.attr("transform", "translate(" + 0 + "," + height + ")")
+		.call(xAxis)
+		.append("text")
+		.text("number of rows")
+		.attr("x", width)
+		.attr("y", -6)
+		.style("text-anchor", "end");	
+	// y-axis
+	svg.append("g")
+		.attr("class", "y axis label")
+		.call(yAxis)
+		.append("text")
+		.text("time")
+		.attr("transform", "rotate(-90)")
+		.attr("y",6)
+		.attr("dy", ".71em") 
+		.style("text-anchor","end")					
+	
+	//For the mouseover bubbles
+	var tooltip = d3.select("body")
+					.append("div")
+					.attr("class","tooltip")
+					.attr("style","display:none")
+
+	var datas; 	
+	d3.csv("obs_timings.csv", type, 
+		function(data) 
+		{
+			datas = data; 
+			svg.selectAll("circle")
+			.data(datas)
+			.enter()
+			.append("circle")
+			.attr("cx", function(d) {return x(d.size); })
+			.attr("cy", function(d) {return y(d.time); })
+			.attr("r", 5)
+			.on("mouseover", function(d)
+			{
+				tooltip.transition()
+						.duration(100)
+						.style("opacity", .9);
+				tooltip.html("(" + d3.round(d.size) + "," + d3.round(d.time,2) + ")") //what to display on mouseover
+				.style("left", (d3.event.pageX + 5) + "px")
+				.style("top", (d3.event.pageY - 28) + "px")
+				.style("display", "block")
+			})
+			.on("mouseout", function(d) 
+			{
+				tooltip.transition()
+						.duration(500)
+						.style("opacity",0);
+			});		
+		});
+
+function type(d) {
+	d.size = +d.size;
+	d.time  = d.time;
+	return d
+}		
+</script>
+</body>
+</html>

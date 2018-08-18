@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="//d3js.org/d3.v4.min.js"></script>
+<script>
+
+var margin = {top: 10, right: 10, bottom: 10, left: 10},
+	width = 960 - margin.left - margin.right,
+	height = 800 - margin.top - margin.bottom;
+	
+
+var svg = d3.select("svg").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height",height + margin.top + margin.bottom)
+			.attr("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+
+    //data
+var n = 20;
+var x1 = [];
+var x2 = [];
+var y = [];
+for(var i = 0; i <= n; i++){
+	x1.push(10*Math.random());
+	x2.push(10*Math.random() + i/2);
+	y.push(Math.random());
+}
+y= y.map(function(d) {return Math.round(d)})
+
+
+//top left bit - scatter plot	
+//scales
+var xScale = d3.scale.linear()
+				.domain([0,d3.max(x1)])
+				.range([0,width/2 - 10]);
+var yScale = d3.scale.linear()
+				.domain([0,d3.max(x2)])
+				.range([height/2 - 10,0]);
+				
+
+//axes
+var xAxis = d3.svg.axis()
+			.scale(x1)
+			.orient("bottom")
+			.ticks(5);
+					
+var yAxis = d3.svg.axis()
+			.scale(x2)
+			.ticks(5)
+			.orient("left");	
+			
+				
+//add axis to svg element				
+svg.append("g")
+		.attr("class", "x axis label")
+		.attr("transform", "translate(" + 0 + "," + height/2 - 10 + ")")
+		.call(xAxis)
+		.append("text")
+		.text("number of rows")
+		.attr("x", width)
+		.attr("y", -6)
+		.style("text-anchor", "end");	
+		
+	// y-axis
+svg.append("g")
+		.attr("class", "y axis label")
+		.call(yAxis)
+		.append("text")
+		.text("time")
+		.attr("transform", "rotate(-90)")
+		.attr("y",6)
+		.attr("dy", ".71em") 
+		.style("text-anchor","end")					
+	
+//dividers 
+</script>

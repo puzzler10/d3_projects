@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<style>
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.title {
+	font: 14px sans-serif;
+	font-weight: bold;
+}
+.label{
+	font: 13px sans-serif;
+}
+
+</style>
+</head>
+<body>
+<script>
+//http://www.d3noob.org/2014/07/my-favourite-tooltip-method-for-line.html
+var margin = { top:60, bottom:40, left:50, right:150 }
+var width = 960 - margin.left - margin.right
+height = 700 - margin.top - margin.bottom
+
+
+			
+//xAxis = time
+//yAxis = cumulative score 
+
+//var x = d3.time.scale()
+//		.range([0,width]);
+
+var x = d3.scale.linear()
+		.range([0,width]);
+var y = d3.scale.linear()
+		.range([height,0]);
+		
+//we're gonna do a x axis with months only
+var xAxis = d3.svg.axis()
+			.scale(x)
+			.orient("bottom")
+	//		.ticks(d3.time.weeks) //allows you to specify the tick breakdown of your x axis
+			.tickSize(16,0	)
+			
+
+var yAxis = d3.svg.axis()
+			.scale(y)
+			.orient("left");
+
+var parseDate = d3.time.format("%d/%m/%Y").parse;
+var formatDate = d3.time.format("%d-%b");
+
+//finds a value in an ordered array
+//will be returning a date that falls to the left of the mouse cursor
+
+var bisectDate = d3.bisector(function(d) { return d.bet_no; }).left;  // **********
+
+var svg = d3.select("body").append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+//x label
+svg.append("g")
+	.attr("class", "x label")
+	.append("text")
+	.text("Number of bets")
+	.attr("transform", "translate("+(width- margin.left)/2+"," + (height + margin.bottom) +")");
+	
+//y label
+svg.append("g")
+	.attr("class", "y label")
+	.append("text")
+	.text("Total profit ($)")
+	.attr("transform", "rotate(-90)")
+	.attr("y", 0 - margin.left)
+	.attr("x", -((height+ margin.top + margin.bottom) / 2))
+	.attr("dy", ".71em");
+
+svg.append("g")
+	.attr("class","title")
+	.append("text")
+	.attr("x", width/2)
+	.attr("y", 0- (margin.top / 2))
+	.attr("text-anchor", "middle")
+	.text("Bet performance over time")	
+
+
+	
+var valueline = d3.svg.line()
+			.x(function (d) {return x(d.bet_no);})
+			.y(function(d) {return y(d.cumulative);});
+
+//this will add the line for the graph
+//allows us to control which elements are where on the screen
+var lineSvg = svg.append("g");                             	 // **********
+
+//this will add our tooltip elements
+var focus = svg.append("g")                              	 // **********
+    .style("display", "none");                   			// **********
+	
+	
+	
+
+d3.csv("trial_betting.csv", type, function(data){
+	//set domains for our scales
+	//d3.extent - from the documentation:
+	//Returns the minimum and maximum value in the given array using natural order.
+	//This is equivalent to calling d3.min and d3.max simultaneously.
+	//eg d3.extent(["13-01-1999","13-02-1999", "13-01-1998"])
+	//		>["13-01-1998", "13-02-1999"]	
+	x.domain(d3.extent(data,function (d) { return d.bet_no  }));
+	y.domain(d3.extent(data, function(d) { return d.cumulative}));
+	
+	 // Add the valueline path.
+    lineSvg.append("path")                                 // **********
+        .attr("class", "line")
+        .attr("d", valueline(data));
+
+		
+	//Add x-line
+	focus.append("line")
+		.attr("class","x")
+		.style("stroke","blue")
+		.style("stroke-dasharray","3,3")
+		.style("opacity", 0.5)
+		.attr("y1", 0)
+		.attr("y2", height);
+		
+	//Add y-line
+	focus.append("line")
+		.attr("class", "y")
+		.style("stroke","blue")
+		.style("stroke-dasharray", "3,3")
+		.style("opacity", 0.5)
+		.attr("x1", width)
+		.attr("x2", width);
+
+		
+	// Add circle to graph
+	focus.append("circle")
+		.attr("class","y")
+		.style("fill", "none")
+		.style("stroke", "blue")
+		.attr("r",4);
+		
+	//Add text at circle
+	//we add a white drop-shadow so that we can read the text easier
+	//we don't put the actual text values - this is just a placeholder for now
+	
+	// profit/loss
+	focus.append("text")
+		.attr("class", "y1")
+		.style("stroke", "white")
+		.style("stroke-width", "3.5px")
+		.style("opacity", 0.8)
+		.style("font", "12px sans-serif")
+		.attr("dx",8)
+		.attr("dy", "-.3em");
+	focus.append("text")
+		.attr("class", "y2")
+		.style("font", "12px sans-serif")
+		.attr("dx", 8)
+		.attr("dy", "-.3em");
+		
+	//date
+	focus.append("text")
+		.attr("class", "y3")
+		.style("stroke", "white")
+		.style("stroke-width", "3.5px")
+		.style("opacity", 0.8)
+		.style("font", "12px sans-serif")	
+		.attr("dx",8)
+		.attr("dy", "1em");
+	focus.append("text")
+		.attr("class", "y4")
+		.attr("dx", 8)
+		.attr("dy", "1em")
+		.style("font", "12px sans-serif");	
+	
+		
+	
+	
+	
+	//Set the area to capture mouse movements
+	svg.append("rect")
+		.attr("width",width)
+		.attr("height", height)
+		.style("fill","none")
+		.style("pointer-events", "all") //if any mouse movements occur in the area, we capture them
+		//makes us display stuff on mouseover
+		.on("mouseover", function() {focus.style("display", null);} ) //display properties of the "focus" elements revert to the default property of "inline"
+		//take away what we displayed on mouseout
+		.on("mouseout", function() {focus.style("display", "none"); } )
+		.on("mousemove", mousemove)
+		
+	function mousemove() {
+		//determine which date will be highlighted
+		
+		//d3.mouse(this)[0] returns x-position of mouse, while d3.mouse(this)[1] returns y-position
+		//invert function reverses the process for mapping data points to x and y values
+		//instead, we map x and y values to data points!
+		var x0 = x.invert(d3.mouse(this)[0]), 
+			//find index of data array closest to mouse cursor
+			//returns index number of first date higher than cursor position
+			i = bisectDate(data, x0, 1),
+			//two variables holding dates above and below the cursor value
+			d0 = data[i-1],
+			d1 = data[i],
+			//this line uses javascript shorthand for an if statement
+			//declares a new array d 
+			//returns whichever data point the cursor is closest to
+			d = x0 - d0.bet_no > d1.bet_no - x0 ? d1: d0;
+			
+			
+		//move circle to appropiate position
+		focus.select("circle.y") //we labelled it with class y beforehand
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  );
+			
+
+		focus.select("text.y1")
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  )
+			.text("Change ($): " + d.profit_loss);
+			
+		focus.select("text.y2")
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  )
+			.text("Change ($): " + d.profit_loss);
+			
+		focus.select("text.y3")
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  )
+			.text("Date " + formatDate(d.date));
+			
+		focus.select("text.y4")
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  )
+			.text("Date: " + formatDate(d.date));
+			
+		focus.select(".x")
+			.attr("transform","translate(" + x(d.bet_no) + "," + y(d.cumulative) + ")"  )
+			.attr("y2", height - y(d.cumulative));
+			
+		focus.select(".y")
+			.attr("transform","translate(" + width * -1 + "," + y(d.cumulative) + ")"  )
+			.attr("x2", width + width);
+
+	}	
+	svg.append("g")
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis)
+		.selectAll(".tick text")
+    	.style("text-anchor", "start")
+   		.attr("x", 6)
+    	.attr("y", 6);
+    	
+	svg.append("g")
+		.attr("class", "y axis")
+		.call(yAxis);
+		
+});
+
+//accessor function that cleans the data 
+function type(d) {
+	d.cumulative = +d.cumulative;
+	d.date = parseDate(d.date);
+	d.bet_no = +d.bet_no;
+	d.profit_loss = +d.profit_loss;
+	return d
+}
+	
+
+
+</script>
+</body>
+</html>

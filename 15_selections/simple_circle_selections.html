@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<svg class="svg_box" width="1000" height="700"></svg>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+var svg = d3.select('svg');
+var width = +svg.attr("width");
+var height = +svg.attr("height");
+
+var radius = 20;
+var circles; 
+
+
+var old_centers; 
+
+old_centers = [100,200,300,400,500,600,700,800,900];
+
+
+//this works to initialise them: 
+/*
+circles = svg.selectAll("circle")
+    .data(possible_centers)
+    .enter()
+    .append("circle")
+        .attr("cx", (d) => d)
+        .attr("cy", height/2)
+        .attr("r", radius); 
+*/
+circles = svg.selectAll("circle")
+        .data(old_centers); 
+        
+        
+circles.enter()
+    .append("circle")
+        .attr("class", "enter")
+        .attr("cx", (d) => d)
+        .attr("cy", height/2)
+        .attr("r", radius); 
+
+
+//now only select a few possible centers 
+newData = [100,450,500,650,700,800];
+
+
+//No key function 
+//This puts the class "update" on the first four circles 
+/*
+circles = svg.selectAll("circle")
+    .data(newData)
+    .attr("class", "update")
+        .style("fill", "red");
+*/
+
+
+//Using a key function 
+//This puts the class "update" on the first, fifth, seventh and eighth circles 
+circles = svg.selectAll("circle")
+    .data(newData, (d) => d )
+    .attr("class", "update")
+        .style("fill", "blue");
+ 
+ 
+//any existing circles that don't match new data are removed 
+circles
+    .exit()
+    .remove(); 
+
+//new circles are added for any new data that does not match existing data 
+var c1 = circles
+    .enter()
+    .append("circle")
+        .attr("class", "new_enter")
+        .attr("cx", (d) => d)
+        .attr("cy", height/2)
+        .attr("r", radius)
+        .style("fill", "green");
+        
+        
+        
+c1.merge(circles); 
+
+    
+    
+    
+
+        
+        
+        
+
+
+//select some possible centers randomly 
+
+
+
+
+
+</script>

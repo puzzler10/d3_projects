@@ -1,0 +1,159 @@
+
+		var width = 1000
+		var height = 700
+		max_time = 22
+	//	var padding = 30;
+		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+		width = 960 - margin.left - margin.right,
+		height = 500 - margin.top - margin.bottom;
+		
+		var svg = d3.select("body").append("svg")
+			.attr("width" , width + margin.left + margin.right)
+			.attr("height" , height + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+					
+		var x = d3.scale.linear()
+					.domain([0,5000])
+					.range([0,width]);
+		var y = d3.scale.linear()
+					.domain([0,max_time + 1])
+					.range([height,0]);
+					
+
+		//axis time mate
+		var xAxis = d3.svg.axis()
+					.scale(x)
+					.orient("bottom")
+					.ticks(5);
+					
+		var yAxis = d3.svg.axis()
+					.scale(y)
+					.ticks(5)
+					.orient("left");
+		var tooltip = d3.select("body")
+					.append("div")
+					.attr("class","tooltip")
+					.attr("style","display:none")
+					
+		
+					
+
+			
+		// adding the axis to our svg element
+		// x-axis
+		svg.append("g")
+			.attr("class", "x axis label")
+			.attr("transform", "translate(" + 0 + "," + height + ")")
+			.call(xAxis)
+			.append("text")
+			.text("number of rows")
+			.attr("x", width)
+			.attr("y", -6)
+			.style("text-anchor", "end");
+			
+		// y-axis
+		svg.append("g")
+			.attr("class", "y axis label")
+			//.attr("transform", "translate(" + padding + "," +0 + padding + ")")
+			.call(yAxis)
+			.append("text")
+			.text("time")
+			.attr("transform", "rotate(-90)")
+			.attr("y",6)
+			.attr("dy", ".71em")  //em is font-size units and dy is relative to the specified y. This helps rotate around the centre of the text 
+			.style("text-anchor","end")
+			
+		//2. Let's read in the data that we want
+		
+		/* callback function: a function which
+			- is passed as an argument to another function
+			- is invoked after some sort of event 
+			Once the parent function completes, the function passed as an argument is called. 
+			
+			further reading: http://stackoverflow.com/questions/21008508/d3-js-import-csv-using-accessor-function-and-callback
+			next reading: accessor functions 
+			
+			
+		*/
+		/* Accessor Functions 
+		
+		rect.attr("height",function(d) {return d*20;})
+  .attr("width", 15)
+  .attr("x",function(d,i) {return i*20;})
+  .attr("y",function(d) {return 100-20*d;}
+  .attr("fill","steelblue");
+  
+  
+			The function(d) stuff is an accessor function. 
+  */
+		
+		var datas; 
+		
+		data1 = d3.csv("obs_timings.csv", function(d) {
+				return {
+					time : +d.time,
+					size : +d.size
+				}; },
+
+
+
+
+				function(data) {
+					datas = data; // store the data in an external variable
+
+					
+					svg.selectAll("circle")
+					.data(datas)
+					.enter()
+					.append("circle")
+					.attr("cx", function(d) {return x(d.size); })
+					.attr("cy", function(d) {return y(d.time); })
+					.attr("r", 5)
+					.on("mouseover", function(d) {
+						tooltip.transition()
+								.duration(100)
+								.style("opacity", .9);
+						tooltip.html("(" + d3.round(d.size) + "," + d3.round(d.time,2) + ")") //what to display on mouseover
+						.style("left", (d3.event.pageX + 5) + "px")
+						.style("top", (d3.event.pageY - 28) + "px")
+						.style("display", "block")
+					
+					})
+					.on("mouseout", function(d) {
+						tooltip.transition()
+							.duration(500)
+							.style("opacity",0);
+					});
+						/*
+					tooltip.html(d["Cereal Name"] + "<br/> (" + xValue(d) 
+	        + ", " + yValue(d) + ")")
+               .style("left", (d3.event.pageX + 5) + "px")
+               .style("top", (d3.event.pageY - 28) + "px");
+					*/
+					
+					//let's make this so that when you mouseover, you see the values 
+					/*
+					var tooltip = d3.select("body")
+						.append("div")
+						.style("position", "absolute")
+						.style("z-index", "10")
+						.style("visibility", "hidden")
+						.text("a simple tooltip");
+					*/
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+			});
+		
+		//for the scales 
+		//max_time =   Math.max.apply(Math,datas.map(function(o){return o.time;}))
+		

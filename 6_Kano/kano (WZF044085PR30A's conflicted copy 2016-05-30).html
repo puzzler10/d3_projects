@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<style>
+
+line {
+	stroke-width: 5px;
+}
+</style>
+</head>
+<body>
+<script>
+var svgHeight = 700
+var svgWidth = 950
+
+var offset = 12
+
+var svg = d3.select("body").append("svg")
+			.attr("height", svgHeight)
+			.attr("width", svgWidth);
+
+			
+//lines 
+//order: service, speed, resolved, simple, personal, comms
+yValues = [40,120,200,280,360,440]		
+posLengths = [40.8, 40.2, 11.3, 31.6, 22.3, 0]
+negLengths = [-51.3, -41.1, -82.2, 0,0,-44]
+
+var data = [
+{'y': 40 , 'color': '#FF0000', 'pos': 40.8 , "neg": -51.3, "label": "service", "leftlabel": "poor service", "rightlabel": "good service" },
+{'y': 140 , 'color': '#0000CC', 'pos': 40.2 , "neg": -41.1, "label": "speed", "leftlabel": "slow", "rightlabel": "quick" }, //blue
+{'y': 240 , 'color': '#006600', 'pos': 11.3 , "neg": -82.2, "label": "resolved", "leftlabel": "not resolved", "rightlabel":"resolved"}, //green
+{'y': 340 , 'color': '#FF6600', 'pos': 31.6 , "neg": 0, "label": "simple", "leftlabel":"","rightlabel": "simple"}, //orange
+{'y': 440 , 'color': '#FF00FF', 'pos': 22.3 , "neg": 0, "label": "personal", "leftlabel": "", "rightlabel": "personal"}, //pink
+{'y': 540 , 'color': '#9900FF', 'pos': 0 , "neg": -44.1, "label": "communications", "leftlabel": "poor communication", "rightlabel":""} //purple
+]
+
+
+var xScale = d3.scale.linear()	
+		.domain([-85, 45])
+		.range([100,svgWidth-100]);
+
+;
+	
+var line = svg.selectAll("line")
+			.data(data)
+			.enter()
+			.append("line")
+			.each(function (d) {
+				
+				d3.select(this).attr({
+					x1: xScale(d.neg),
+					x2: xScale(d.pos),
+					y1: d.y,
+					y2: d.y,
+					stroke: d.color,
+					label : d.label
+				})
+	
+			});
+
+
+svg.append("line")
+	.attr("x1", xScale(0))
+	.attr("x2", xScale(0))
+	.attr("y1", 0)
+	.attr("y2", svgHeight)
+	.style("stroke", "grey")
+	.style("stroke-width", "3px");
+		
+
+var pts = svg.selectAll("circle")
+			.data(data)
+			.enter()
+			
+//Left points			
+pts.append("circle")
+		.attr("class", "leftcircle")
+			.each(function(d){
+				temp = d.neg
+				if (temp != 0)
+				{
+					d3.select(this).attr(
+					{
+						cx: xScale(d.neg),
+						cy: d.y,
+						fill: d.color,
+						r: 7				
+					})
+				
+				}
+			});
+			
+
+//Right Points				
+pts.append("circle")
+	.attr("class", "rightcircle")
+	.each(function(d){
+	if(d.pos != 0)
+	{
+		d3.select(this).attr(
+		{
+			cx: xScale(d.pos),
+			cy: d.y,
+			fill: d.color,
+			r: 7
+		})
+	}
+}
+);
+
+//Left Labels				
+pts.append("text")
+	.attr("class", "leftlabel")
+	.each(function(d){
+	if(d.neg != 0)
+	{
+		d3.select(this).attr(
+		{
+			x: xScale(d.neg),
+			y: d.y - offset,
+			fill: d.color,
+			
+		}
+		)
+		//.text(function (d) return {d.leftlabel})
+		.text(d.leftlabel)
+		.attr("text-anchor", "middle")
+	}
+}
+);
+
+//right labels
+pts.append("text")
+	.attr("class", "rightlabel")
+	.each(function(d){
+	if(d.pos != 0)
+	{
+		d3.select(this).attr(
+		{
+			x: xScale(d.pos),
+			y: d.y - offset,
+			fill: d.color,
+			
+		}
+		)
+		//.text(function (d) return {d.leftlabel})
+		.text(d.rightlabel)
+		.attr("text-anchor", "middle")
+	}
+}
+);
+
+
+
+//left values
+pts.append("text")
+	.attr("class", "leftvalue")
+	.each(function(d){
+	if(d.neg != 0)
+	{
+		d3.select(this).attr(
+		{
+			x: xScale(d.neg),
+			y: d.y + 2*offset,
+			fill: d.color,
+			
+		}
+		)
+		//.text(function (d) return {d.leftlabel})
+		.text(d.neg)
+		.attr("text-anchor", "middle")
+	}
+}
+);
+
+//right values
+pts.append("text")
+	.attr("class", "rightvalue")
+	.each(function(d){
+	if(d.pos != 0)
+	{
+		d3.select(this).attr(
+		{
+			x: xScale(d.pos),
+			y: d.y + 2*offset,
+			fill: d.color,
+			
+		}
+		)
+		//.text(function (d) return {d.leftlabel})
+		.text(d.pos)
+		.attr("text-anchor", "middle")
+	}
+}
+);
+
+pts.append("rect")
+	.attr("class", "background")
+	.style("fill-opacity", 0.2)
+	.each(function (d) {
+		d3.select(this).attr(
+		{
+			x: 10,
+			y: d.y - 40,
+			width: svgWidth - 10 ,
+			height: 100,
+			fill: d.color
+		}
+		
+		)
+	
+	}
+	
+	)
+		
+		
+
+	
+		
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

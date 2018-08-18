@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>    
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+</style>
+</head>
+<body>
+<form>
+    <label> <input type="radio" name="mode" value="grouped"> Grouped </label>
+    <label><input type="radio" name="mode" value="stacked"> Stacked</label>
+    <label><input type="radio" name="mode" value="scatter"> Scatter</label>
+    <label><input type="radio" name="mode" value="scatter"> Line </label>
+</form>
+
+<script type="text/javascript" src="http://mbostock.github.com/d3/d3.js"></script>
+<script>
+//https://bl.ocks.org/mbostock/3943967
+
+
+
+var n = 4 // number of layers
+var m = 50 // number of data points
+var stack = d3.layout.stack()
+var layers = stack(d3.range(n).map(function() {return bumpLayer(m, 0.1)}))
+
+var yGroupMax = d3.max(layers, function(column) {return d3.max(column, function(row){return row.y})})
+var yScatterMax = d3.max(layers, function(column) {return d3.max(column, function(row) {return row.y})})
+var yStackMax = d3.max(layers, function(column) {return d3.max(column, function(row){return row.y + row.y0})})
+
+
+var margin = {top:40, bottom:20, right:10, left:10}
+var svgWidth = 960 - margin.left - margin.right
+var svgHeight = 500 - margin.top - margin.bottom
+
+var svg = d3.select("body").append("svg")
+			.attr("width", svgWidth + margin.left + margin.right)
+			.attr("height", svgHeight + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			
+var xScale = d3.scale.ordinal()
+				.domain(d3.range(m))
+				.rangeRoundBands([0,svgWidth], 0.05);
+				
+var yScale = d3.scale.linear()
+				.domain([0, yStackMax])
+				.range([svgHeight, 0]);
+				
+var xAxis = d3.svg.axis()
+			.scale(xScale)
+			.tickSize(0)
+			.tickPadding(6)
+			.orient("bottom");
+			
+			
+			
+var layer = svg.selectAll(".layer")
+				.data(layers)
+				.enter()
+				.append("g")
+				.attr("class", "layer")
+				.style("fill", function(d,i) {return chooseCol(i)})
+//Start with Stacked
+var rect = layer.selectAll("rect")
+				.data(function(d) {return d})
+				.enter()
+				.append("rect")
+				.attr("x", function(d, i, j) { return xScale(d.x) + xScale.rangeBand() / n * j; })
+      			.attr("width", xScale.rangeBand() / n)
+				.attr("y", function(d) { return yScale(d.y); })
+     		    .attr("height", function(d) { return svgHeight - yScale(d.y); });
+				
+
+svg.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0," + (svgHeight) + ")")
+	.call(xAxis);
+	
+				
+//Grouped graph
+/*
+ yScale.domain([0, yGroupMax]);
+
+  rect.transition()
+      .duration(500)
+      .delay(function(d, i) { return i * 10; })
+   
+    .transition()
+     
+*/	
+
+var testdata1 = [
+  [
+    {x: 1, y: 40},
+    {x: 2, y: 43},
+    {x: 3, y: 12},
+    {x: 4, y: 60},
+    {x: 5, y: 63},
+    {x: 6, y: 23}
+ ], [
+    {x: 1, y: 12},
+    {x: 2, y: 5},
+    {x: 3, y: 23},
+    {x: 4, y: 18},
+    {x: 5, y: 73},
+    {x: 6, y: 27}
+ ], [
+    {x: 1, y: 60},
+    {x: 2, y: 49},
+    {x: 3, y: 16},
+    {x: 4, y: 20},
+    {x: 5, y: 92},
+    {x: 6, y: 20}
+  ] 
+];
+	
+var circles = svg.select("circle")
+	.data(testdata1)
+	.enter()
+	.append("circle")
+	
+circles.each(function(d,i,j) {console.log(d,i,j)})
+	
+var subsel = circles.selectAll("rect")
+		.data(function(d) {return d})
+		.enter()
+		.append("rect")
+	
+subsel.attr("foobar", function(d,i,j) {console.log(d,i,j)})
+		.transition()
+		.attr("foobar", function(d,i,j) {console.log(d,i,j)})		
+	
+//Scatter plot
+/*
+
+var xScale = d3.scale.linear()
+				.domain([0,49])
+				.range([40, svgWidth - 40 ])
+				
+var yScale = d3.scale.linear()
+				.domain([0,yScatterMax])
+				.range([svgHeight - 40, 40 ])				
+				
+
+				
+
+var temp = svg.selectAll(".row")
+	.data(layers)
+	.enter()
+	.append("g")
+	.style("fill", function(d,i) { return chooseCol(i)})
+	.selectAll("circle")
+	.data(function(d,i){return layers[i]})
+	.enter()
+	.append("circle")
+	.attr("cx", function(d) {return xScale(d.x)} )
+	.attr("cy", function(d) {return yScale(d.y)} )
+	.attr("r", 3);
+*/
+
+
+
+
+
+//Stacked graph
+/*			
+
+var rect = layer.selectAll("rect")
+				.data(function(d) {return d})
+				.enter()
+				.append("rect")
+				.attr("x", function(d) {return xScale(d.x)})
+				.attr("y", function(d){return svgHeight })
+				.attr("width", xScale.rangeBand())
+				.attr("height", 0) //will add height in transition stage
+
+
+				
+rect.transition()
+	.delay(function(d,i){ return i*10  } )
+	.attr("y", function(d) {return yScale(d.y0 + d.y)})
+	.attr("height", function(d){return yScale(d.y0) - yScale(d.y0 + d.y)} )
+				
+
+
+*/
+
+
+	
+	
+	
+	
+function chooseCol(rowNo)
+{
+	if(rowNo=== 0){
+		return("blue")
+	} else if (rowNo === 1) {
+		return("red")
+	} else if(rowNo === 2) {
+		return("green")
+	}  else{
+		return ("purple")
+	}
+} 	
+	
+	
+// Inspired by Lee Byron's test data generator.
+function bumpLayer(n, o) {
+
+  function bump(a) {
+  // x will take values between 0.90909 and 10
+    var x = 1 / (.1 + Math.random()),
+	//y takes values between -0.5 and 1.5
+        y = 2 * Math.random() - .5,
+	 //z takes values between 9.0909 and 100
+        z = 10 / (.1 + Math.random());
+    for (var i = 0; i < n; i++) {
+	//(i/10 - y) can take values between -1.5 and 1.5
+	//so w takes range between -150 and 150
+	//each time the loop goes round, w is incremented by the same amount. 
+	//the increment goes up by between 0.90909 and 10 
+      var w = (i / n - y) * z;
+	   //x += 2  is the same as x = x + 2
+		//a[i] = a[i] + ...
+      a[i] += x * Math.exp(-w * w);
+    }
+  }
+
+  var a = [], i;
+  for (i = 0; i < n; ++i) a[i] = o + o * Math.random();
+  for (i = 0; i < 5; ++i) bump(a);
+  return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

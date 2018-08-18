@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<style>
+</style>
+</head>
+<body>
+<script>
+var svgHeight = 500
+var svgWidth = 950
+
+var svg = d3.select("body").append("svg")
+			.attr("height", svgHeight)
+			.attr("width", svgWidth);
+
+			
+//lines 
+//order: service, speed, resolved, simple, personal, comms
+yValues = [40,120,200,280,360,440]		
+posLengths = [40.8, 40.2, 11.3, 31.6, 22.3, 0]
+negLengths = [-51.3, -41.1, -82.2, 0,0,-44]
+
+var line = d3.selectAll("line")
+			.data(yValues)
+			.enter()
+			.append("line")
+			.attr("x1", 100)
+			.attr("x2", 300)
+			.attr("y1", function(d) {return d;} )
+			.attr("y2", function(d) {return d;});
+
+</script>
+</body>
+</html>

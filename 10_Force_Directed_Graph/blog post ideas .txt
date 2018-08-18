@@ -1,0 +1,10 @@
+- split foci 
+- bubble graph 
+- zoom 
+- pan 
+- search 
+- tooltip 
+- mouse add node 
+- mouse remove node 
+- mouse add link 
+- collapsible 

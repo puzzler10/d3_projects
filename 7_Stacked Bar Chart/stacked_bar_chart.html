@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>    
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: auto;
+  position: relative;
+  width: 960px;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+form {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.line {
+  fill: none;
+  stroke-width: 3px;
+}
+
+</style>
+</head>
+<body>
+<form>
+    <label><input type="radio" name="mode" value="grouped"> Grouped </label>
+    <label><input type="radio" name="mode" value="stacked" checked> Stacked</label>
+    <label><input type="radio" name="mode" value="scatter"> Scatter</label>
+    <label><input type="radio" name="mode" value="line"> Line </label>
+</form>
+
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script><script>
+//https://bl.ocks.org/mbostock/3943967
+
+
+
+var n = 4 // number of layers
+var m = 60 // number of data points
+var stack = d3.layout.stack()
+var layers = stack(d3.range(n).map(function() {return bumpLayer(m, 0.1)}))
+
+var yGroupMax = d3.max(layers, function(column) {return d3.max(column, function(row){return row.y})})
+var yScatterMax = d3.max(layers, function(column) {return d3.max(column, function(row) {return row.y})})
+var yStackMax = d3.max(layers, function(column) {return d3.max(column, function(row){return row.y + row.y0})})
+
+
+var margin = {top:40, bottom:20, right:10, left:10}
+var svgWidth = 960 - margin.left - margin.right
+var svgHeight = 500 - margin.top - margin.bottom
+
+var svg = d3.select("body").append("svg")
+			.attr("width", svgWidth + margin.left + margin.right)
+			.attr("height", svgHeight + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			
+var xScale = d3.scale.ordinal()
+				.domain(d3.range(m))
+				.rangeRoundBands([0,svgWidth], 0.05);
+				
+var yScale = d3.scale.linear()
+				.domain([0, yStackMax])
+				.range([svgHeight, 0]);
+				
+var xAxis = d3.svg.axis()
+			.scale(xScale)
+			.tickSize(0)
+			.tickPadding(6)
+			.orient("bottom");
+			
+			
+svg.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0," + (svgHeight) + ")")
+	.call(xAxis);
+				
+				
+var line = d3.svg.line()
+    .x(function(d) { return xScale(d.x); })
+    .y(function(d) { return yScale(d.y); })
+//	.interpolate("basis");
+
+var lineBefore = false	
+			
+var layer = svg.selectAll(".layer")
+				.data(layers)
+				.enter()
+				.append("g")
+				.attr("class", "layer")
+				.style("fill", function(d,i) {return chooseCol(i)})
+				
+
+//Start with Stacked
+
+
+var rect = layer.selectAll("rect")
+				.data(function(d) {return d})
+				.enter()
+				.append("rect")
+				.attr("x", function(d) {return xScale(d.x)})
+				.attr("y", svgHeight)
+				.attr("width", xScale.rangeBand())
+				.attr("height", 0)
+				
+rect.transition()
+	.delay(function(d,i){ return i*10  } )
+	.attr("y", function(d) {return yScale(d.y0 + d.y)})
+	.attr("height", function(d){return yScale(d.y0) - yScale(d.y0 + d.y)} )
+
+//for line graph	
+var path = layer.append("path")
+				.style("fill", "none")
+				.attr("class", "line")
+
+	
+
+	
+d3.selectAll("input").on("change", change);
+	
+function change()
+{
+	if (this.value === "grouped")
+		{	transitionGrouped(); }
+  else if (this.value === "stacked")
+		{ transitionStacked();  } 
+	else if(this.value === "scatter")
+	{ transitionScatter();}
+	else if(this.value === "line")
+	{ transitionLine();}
+}
+
+		
+function transitionLine()
+{
+	lineBefore = true //indicates if we've selected this before
+	yScale.domain([0, yGroupMax]);
+	
+	
+	path.attr("d", function(d) {return line(d)})
+		.style("stroke", function(d,i) {return chooseCol(i)} )
+		//This works using https://css-tricks.com/svg-line-animation-works/
+		.each(function(d) { d.totalLength = this.getTotalLength(); })
+		.attr("stroke-dasharray",function(d){ return(d.totalLength + " " + d.totalLength)})
+		.attr("stroke-dashoffset", function(d) {return d.totalLength})	
+	
+	//fade out rectangles/points
+	rect.transition()
+		  .delay(1000)
+		  .duration(250)	
+		  .attr("height",0)
+		  .attr("width", 0);
+		  
+	//draw line
+	path.transition()
+			.duration(1000)
+			.ease("linear")
+			.attr("stroke-dashoffset", 0);
+}	
+
+
+//Grouped graph
+function transitionGrouped()
+{
+yScale.domain([0, yGroupMax]);		
+rect.transition()
+      .duration(500)
+      .delay(function(d, i) { return i * 10; })			
+	  .attr("x", function(d, i, j) { return xScale(d.x) + xScale.rangeBand() / n * j; })
+      .attr("width", xScale.rangeBand() / n)
+	  .attr("rx", 0)
+	  .attr("ry", 0)
+	  .transition()
+	  .attr("y", function(d) { return yScale(d.y); })
+      .attr("height", function(d) { return svgHeight - yScale(d.y); });
+	  
+	  unwindLine(0)
+
+}
+
+function transitionStacked()
+{
+	yScale.domain([0,yStackMax])
+	
+	rect.transition()
+		.duration(500)
+		.delay(function(d,i) {return i*10;})
+		.attr("rx", 0)
+		.attr("ry", 0)
+		.attr("y", function(d) {return yScale(d.y0 + d.y)})
+		.attr("height", function(d){return yScale(d.y0) - yScale(d.y0 + d.y)})
+	  .transition()
+		.attr("x", function(d) {return xScale(d.x)})
+		.attr("width", xScale.rangeBand())
+		
+		unwindLine(0)
+}
+				
+function transitionScatter()
+{
+  yScale.domain([0, yGroupMax]);	
+  
+  //have to adjust absolute position to get centring effect
+  topLeft = xScale.rangeBand() / n
+  
+	rect.transition()
+		.duration(500)
+		.delay(function(d,i) {return i*10;})
+		.attr("width",topLeft)
+		.attr("x", function(d) { return xScale(d.x) -topLeft/2 })
+		.transition()
+		.attr("height", topLeft )
+		.attr("y", function(d) { return yScale(d.y) - topLeft/2 })
+		.attr("rx", 30)
+		.attr("ry", 30)
+
+		unwindLine(1000)
+}     
+
+function unwindLine(delay)
+//function to undraw the line when we deselect it 
+{
+	if (lineBefore === true)
+	{
+		lineBefore === false
+		 path.transition()
+			.delay(delay)
+			.duration(300)
+			.ease("linear")
+			.attr("stroke-dashoffset", function(d) {return d.totalLength});
+	}
+}
+	
+function chooseCol(rowNo)
+{
+	if(rowNo=== 0){
+		return("#e41a1c")
+	} else if (rowNo === 1) {
+		return("#377eb8")
+	} else if(rowNo === 2) {
+		return("#4daf4a")
+	}  else{
+		return ("#984ea3")
+	}
+} 	
+	
+	
+// Inspired by Lee Byron's test data generator.
+function bumpLayer(n, o) {
+
+  function bump(a) {
+  // x will take values between 0.90909 and 10
+    var x = 1 / (.1 + Math.random()),
+	//y takes values between -0.5 and 1.5
+        y = 2 * Math.random() - .5,
+	 //z takes values between 9.0909 and 100
+        z = 10 / (.1 + Math.random());
+    for (var i = 0; i < n; i++) {
+	//(i/10 - y) can take values between -1.5 and 1.5
+	//so w takes range between -150 and 150
+	//each time the loop goes round, w is incremented by the same amount. 
+	//the increment goes up by between 0.90909 and 10 
+      var w = (i / n - y) * z;
+	   //x += 2  is the same as x = x + 2
+		//a[i] = a[i] + ...
+      a[i] += x * Math.exp(-w * w);
+    }
+  }
+
+  var a = [], i;
+  for (i = 0; i < n; ++i) a[i] = o + o * Math.random();
+  for (i = 0; i < 5; ++i) bump(a);
+  return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
+}
+</script>
+</body>
+</html>
